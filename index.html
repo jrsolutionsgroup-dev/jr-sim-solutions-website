@@ -1,0 +1,1169 @@
+<!-- ... existing code ... -->
+  <meta name="description" content="Independent flight simulation software engineering: OptiSim vertical climb profile optimization and SmartEFB cross-platform Electronic Flight Bag." />
+  
+  <!-- Google Fonts: Plus Jakarta Sans & IBM Plex Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: {
+              DEFAULT: '#0A1D37',
+              950: '#061224',
+              900: '#0A1D37',
+              800: '#102A4E',
+              700: '#1B3D6D',
+              600: '#2E5485',
+            },
+            surface: {
+              DEFAULT: '#F6F8FA',
+              pure: '#FFFFFF',
+              panel: '#EEF2F6',
+            },
+            hairline: '#D0D8E4',
+            ink: {
+              primary: '#0A1D37',
+              body: '#1A2636',
+              muted: '#4E5D70',
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['"IBM Plex Mono"', 'monospace'],
+          },
+          letterSpacing: {
+            brand: '0.18em',
+            eyebrow: '0.15em',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Enterprise Aerospace Precision Styles */
+    :root {
+      --navy: #0A1D37;
+      --bg-primary: #F6F8FA;
+      --bg-surface: #FFFFFF;
+      --bg-panel: #EEF2F6;
+      --border-line: #D0D8E4;
+      --text-body: #1A2636;
+      --text-muted: #4E5D70;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-body);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    /* Subtle 1px orthographic engineering grid */
+    .aviation-grid {
+      background-size: 40px 40px;
+      background-image: 
+        linear-gradient(to right, rgba(10, 29, 55, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(10, 29, 55, 0.03) 1px, transparent 1px);
+    }
+
+    .border-hairline {
+      border-color: var(--border-line);
+    }
+
+    /* Precision Instrument Range Sliders */
+    input[type="range"].aviation-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 1px;
+      background: #0A1D37;
+      outline: none;
+    }
+    input[type="range"].aviation-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 12px;
+      height: 16px;
+      background: #0A1D37;
+      border: 1px solid #FFFFFF;
+      box-shadow: 0 0 0 1px #0A1D37;
+      cursor: pointer;
+      border-radius: 1px;
+    }
+    input[type="range"].aviation-slider::-moz-range-thumb {
+      width: 12px;
+      height: 16px;
+      background: #0A1D37;
+      border: 1px solid #FFFFFF;
+      box-shadow: 0 0 0 1px #0A1D37;
+      cursor: pointer;
+      border-radius: 1px;
+    }
+  </style>
+</head>
+<body class="bg-surface text-ink-body selection:bg-navy selection:text-white">
+
+  <!-- =====================================================================
+       TOP NAVIGATION BAR (64px CRISP AEROSPACE HEADER)
+       ===================================================================== -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-hairline">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Brand Identity: Double-Line Interlocking JSR Monogram + Wordmark -->
+        <a href="#" class="flex items-center gap-3.5 group focus:outline-none" aria-label="JR Sim Solutions Home">
+          <div class="w-9 h-9 flex items-center justify-center shrink-0">
+            <svg viewBox="0 0 120 110" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+              <!-- J Double-Line Geometry -->
+              <path d="M22 14 H42 V72 C42 86 32 95 19 95 C10 95 4 90 1 83" stroke="#0A1D37" stroke-width="2.5" stroke-linecap="butt"/>
+              <path d="M35 14 V71 C35 81 28 88 19 88 C13 88 9 84 7 79" stroke="#0A1D37" stroke-width="2.5" stroke-linecap="butt"/>
+              <!-- R Double-Line Geometry -->
+              <path d="M56 93 V14 H82 C99 14 110 24 110 40 C110 53 101 62 88 65 L112 93" stroke="#0A1D37" stroke-width="2.5" stroke-linecap="butt" stroke-linejoin="miter"/>
+              <path d="M63 93 V21 H81 C93 21 102 28 102 40 C102 51 94 58 81 58 H63" stroke="#0A1D37" stroke-width="2.5" stroke-linecap="butt"/>
+              <path d="M79 58 L103 93" stroke="#0A1D37" stroke-width="2.5" stroke-linecap="butt"/>
+              <!-- Interlocking S Loop -->
+              <path d="M44 85 C48 92 56 95 66 95 C79 95 88 87 88 76 C88 65 79 60 65 56 C52 52 44 47 44 37 C44 27 52 20 63 20 C72 20 79 25 83 33 L95 58" stroke="#0A1D37" stroke-width="2.5" stroke-linecap="butt"/>
+            </svg>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-navy font-medium text-sm sm:text-[15px] tracking-brand uppercase leading-none">
+              JR SIM SOLUTIONS
+            </span>
+            <span class="font-mono text-[9.5px] text-ink-muted tracking-widest uppercase mt-1 hidden sm:block" data-i18n="nav_sub">
+              AEROSPACE SIMULATION ENGINEERING
+            </span>
+          </div>
+        </a>
+
+        <!-- Desktop Anchor Navigation -->
+        <nav class="hidden md:flex items-center gap-8">
+          <a href="#software" class="text-[11px] font-semibold uppercase tracking-eyebrow text-ink-muted hover:text-navy transition-colors" data-i18n="nav_software">
+            Software
+          </a>
+          <a href="#architecture" class="text-[11px] font-semibold uppercase tracking-eyebrow text-ink-muted hover:text-navy transition-colors" data-i18n="nav_architecture">
+            Architecture
+          </a>
+          <a href="#roadmap" class="text-[11px] font-semibold uppercase tracking-eyebrow text-ink-muted hover:text-navy transition-colors" data-i18n="nav_roadmap">
+            Roadmap
+          </a>
+          <a href="#legal" class="text-[11px] font-semibold uppercase tracking-eyebrow text-ink-muted hover:text-navy transition-colors" data-i18n="nav_legal">
+            Legal &amp; Status
+          </a>
+        </nav>
+
+        <!-- Segmented Language Toggle [ EN | NL ] & Mobile Trigger -->
+        <div class="flex items-center gap-3">
+          <div class="inline-flex items-center border border-hairline bg-surface p-0.5 rounded-[2px]" role="group" aria-label="Language Switcher">
+            <button type="button" id="btn-lang-en" onclick="setLanguage('en')" class="px-2.5 py-1 font-mono text-[11px] font-semibold tracking-wider transition-colors rounded-[1px]">
+              EN
+            </button>
+            <span class="text-hairline select-none text-xs">|</span>
+            <button type="button" id="btn-lang-nl" onclick="setLanguage('nl')" class="px-2.5 py-1 font-mono text-[11px] font-medium tracking-wider transition-colors rounded-[1px]">
+              NL
+            </button>
+          </div>
+
+          <button type="button" id="mobile-menu-btn" onclick="toggleMobileMenu()" class="md:hidden p-2 border border-hairline text-navy hover:bg-surface rounded-[2px]" aria-label="Toggle Menu">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+              <path stroke-linecap="square" d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div id="mobile-menu" class="hidden md:hidden border-t border-hairline bg-white px-4 py-3 space-y-2">
+      <a href="#software" onclick="toggleMobileMenu()" class="block py-2 font-mono text-xs font-semibold uppercase tracking-eyebrow text-navy" data-i18n="nav_software">Software</a>
+      <a href="#architecture" onclick="toggleMobileMenu()" class="block py-2 font-mono text-xs font-semibold uppercase tracking-eyebrow text-navy" data-i18n="nav_architecture">Architecture</a>
+      <a href="#roadmap" onclick="toggleMobileMenu()" class="block py-2 font-mono text-xs font-semibold uppercase tracking-eyebrow text-navy" data-i18n="nav_roadmap">Roadmap</a>
+      <a href="#legal" onclick="toggleMobileMenu()" class="block py-2 font-mono text-xs font-semibold uppercase tracking-eyebrow text-navy" data-i18n="nav_legal">Legal &amp; Status</a>
+    </div>
+  </header>
+
+  <!-- =====================================================================
+       1. ARCHITECTURAL SPLIT HERO
+       ===================================================================== -->
+  <section class="relative aviation-grid border-b border-hairline bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 lg:py-24">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+        
+        <!-- Left Column: Precision Engineering Proposition -->
+        <div class="lg:col-span-6 space-y-6">
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 border border-hairline bg-surface rounded-[2px]">
+            <span class="w-1.5 h-1.5 bg-navy"></span>
+            <span class="font-mono text-[10.5px] font-semibold uppercase tracking-eyebrow text-navy" data-i18n="hero_eyebrow">
+              FLIGHT OPERATIONS SOFTWARE ARCHITECTURE
+            </span>
+          </div>
+
+          <h1 class="text-3xl sm:text-4xl lg:text-[42px] font-semibold text-navy tracking-tight leading-[1.14]" data-i18n="hero_title">
+            Deterministic flight performance and Electronic Flight Bag systems.
+          </h1>
+
+          <p class="text-base text-ink-muted leading-relaxed font-normal" data-i18n="hero_subtitle">
+            JR Sim Solutions engineers specialized operational software for flight simulation environments—translating airline dispatch methodology, vertical profile optimization, and cross-device EFB synchronization into lightweight desktop and tablet applications.
+          </p>
+
+          <!-- Direct Technical Action Links -->
+          <div class="pt-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <a href="#software" class="inline-flex items-center justify-center gap-2.5 px-5 py-3 bg-navy text-white font-mono text-xs font-medium uppercase tracking-wider hover:bg-navy-800 transition-colors rounded-[2px]">
+              <span data-i18n="hero_cta_primary">INSPECT SOFTWARE MODULES</span>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                <path stroke-linecap="square" d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
+            </a>
+            <a href="#roadmap" class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-white text-navy border border-navy font-mono text-xs font-medium uppercase tracking-wider hover:bg-surface transition-colors rounded-[2px]">
+              <span data-i18n="hero_cta_secondary">R&amp;D RELEASE PIPELINE</span>
+            </a>
+          </div>
+
+          <!-- Clean Structural Metadata Strip -->
+          <div class="pt-6 mt-6 border-t border-hairline grid grid-cols-3 gap-4 font-mono">
+            <div>
+              <div class="text-[10px] text-ink-muted uppercase" data-i18n="meta_1_k">VERTICAL ENGINE</div>
+              <div class="text-xs sm:text-sm font-semibold text-navy mt-0.5">OPTISIM v0.9</div>
+            </div>
+            <div>
+              <div class="text-[10px] text-ink-muted uppercase" data-i18n="meta_2_k">FLIGHT DECK EFB</div>
+              <div class="text-xs sm:text-sm font-semibold text-navy mt-0.5">SMARTEFB v0.8</div>
+            </div>
+            <div>
+              <div class="text-[10px] text-ink-muted uppercase" data-i18n="meta_3_k">DISPATCH LINK</div>
+              <div class="text-xs sm:text-sm font-semibold text-navy mt-0.5">SIMBRIEF OFP</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: High-Contrast Schematic / Wireframe Interface Preview -->
+        <div class="lg:col-span-6">
+          <div class="bg-white border border-navy rounded-[2px]">
+            <!-- Window Titlebar -->
+            <div class="px-4 py-2.5 border-b border-hairline bg-surface flex items-center justify-between font-mono text-[10.5px]">
+              <div class="flex items-center gap-2.5">
+                <span class="w-2 h-2 bg-navy inline-block"></span>
+                <span class="font-semibold text-navy tracking-wider">UNIFIED TELEMETRY // OPTISIM ↔ SMARTEFB</span>
+              </div>
+              <span class="text-ink-muted">SYS-SCHEMATIC 01</span>
+            </div>
+
+            <!-- Top Split: Vertical Climb Profile Wireframe -->
+            <div class="p-4 border-b border-hairline">
+              <div class="flex items-center justify-between font-mono text-[10px] text-ink-muted mb-2">
+                <span>OPTISIM VERTICAL PROFILE // B738-800W (CI 28)</span>
+                <span class="text-navy font-semibold">OPT SCHEDULE: 294 KT / M0.78</span>
+              </div>
+              <div class="border border-hairline bg-surface/50 p-3">
+                <svg viewBox="0 0 460 155" class="w-full h-auto" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <!-- Orthographic Altitude Lines -->
+                  <line x1="42" y1="18" x2="445" y2="18" stroke="#D0D8E4" stroke-width="1" stroke-dasharray="2 2"/>
+                  <line x1="42" y1="58" x2="445" y2="58" stroke="#D0D8E4" stroke-width="1" stroke-dasharray="2 2"/>
+                  <line x1="42" y1="98" x2="445" y2="98" stroke="#D0D8E4" stroke-width="1" stroke-dasharray="2 2"/>
+                  <line x1="42" y1="132" x2="445" y2="132" stroke="#0A1D37" stroke-width="1"/>
+                  <line x1="42" y1="12" x2="42" y2="132" stroke="#0A1D37" stroke-width="1"/>
+
+                  <!-- Y-Axis Flight Levels -->
+                  <text x="6" y="21" fill="#4E5D70" font-family="IBM Plex Mono, monospace" font-size="8.5">FL370</text>
+                  <text x="6" y="61" fill="#4E5D70" font-family="IBM Plex Mono, monospace" font-size="8.5">FL240</text>
+                  <text x="6" y="101" fill="#4E5D70" font-family="IBM Plex Mono, monospace" font-size="8.5">FL100</text>
+                  <text x="14" y="135" fill="#4E5D70" font-family="IBM Plex Mono, monospace" font-size="8.5">GND</text>
+
+                  <!-- Baseline Unoptimized Profile -->
+                  <path d="M42 132 L105 98 L285 26 L440 18" stroke="#8C9BAE" stroke-width="1" stroke-dasharray="4 3"/>
+
+                  <!-- OptiSim Double-Line Computed Trajectory -->
+                  <path d="M42 132 L96 98 L244 18 L440 18" stroke="#0A1D37" stroke-width="1.75"/>
+                  <path d="M47 132 L100 98 L247 22 L440 22" stroke="#0A1D37" stroke-width="0.9" opacity="0.5"/>
+
+                  <!-- Telemetry Nodes -->
+                  <rect x="93" y="95" width="6" height="6" fill="#FFFFFF" stroke="#0A1D37" stroke-width="1.5"/>
+                  <rect x="241" y="15" width="6" height="6" fill="#0A1D37"/>
+                  <rect x="437" y="15" width="6" height="6" fill="#FFFFFF" stroke="#0A1D37" stroke-width="1.5"/>
+
+                  <!-- Annotations -->
+                  <text x="106" y="93" fill="#0A1D37" font-family="IBM Plex Mono, monospace" font-size="8.5" font-weight="600">ACCEL 250→294 KT</text>
+                  <text x="205" y="11" fill="#0A1D37" font-family="IBM Plex Mono, monospace" font-size="8.5" font-weight="600">TOC // 82 NM (-48 KG)</text>
+                  <text x="315" y="45" fill="#4E5D70" font-family="IBM Plex Mono, monospace" font-size="8">STD ECON: 280/M.78</text>
+
+                  <!-- X-Axis Distance -->
+                  <text x="42" y="146" fill="#4E5D70" font-family="IBM Plex Mono, monospace" font-size="8.5">0 NM</text>
+                  <text x="230" y="146" fill="#4E5D70" font-family="IBM Plex Mono, monospace" font-size="8.5">80 NM</text>
+                  <text x="405" y="146" fill="#4E5D70" font-family="IBM Plex Mono, monospace" font-size="8.5">160 NM</text>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Bottom Split: SmartEFB Sync Bridge Readout -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-hairline font-mono text-[11px]">
+              <div class="p-4 bg-white">
+                <div class="text-[9.5px] text-ink-muted uppercase tracking-wider mb-2">SMARTEFB // DESKTOP HOST</div>
+                <div class="space-y-1.5">
+                  <div class="flex justify-between"><span class="text-ink-muted">OFP ROUTE:</span><span class="text-navy font-semibold">EHAM/24 → EGLL/27R</span></div>
+                  <div class="flex justify-between"><span class="text-ink-muted">ZFW / TOW:</span><span class="text-navy font-semibold">59.2 T / 66.1 T</span></div>
+                  <div class="flex justify-between"><span class="text-ink-muted">WIND AVG:</span><span class="text-navy font-semibold">265° / 34 KT (HDW)</span></div>
+                </div>
+              </div>
+              <div class="p-4 bg-surface/50">
+                <div class="text-[9.5px] text-ink-muted uppercase tracking-wider mb-2">LOCAL SYNC // TABLET CLIENT</div>
+                <div class="space-y-1.5">
+                  <div class="flex justify-between"><span class="text-ink-muted">TRANSPORT:</span><span class="text-navy font-semibold">WEBSOCKET (LAN)</span></div>
+                  <div class="flex justify-between"><span class="text-ink-muted">LATENCY:</span><span class="text-navy font-semibold">&lt; 12 MS</span></div>
+                  <div class="flex justify-between"><span class="text-ink-muted">CHECKLIST STATE:</span><span class="text-navy font-semibold">SYNCHRONIZED</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================================
+       2. CORE SOFTWARE DIVISION (2-COLUMN 1PX TECHNICAL MATRIX + EMBEDDED INSPECTORS)
+       ===================================================================== -->
+  <section id="software" class="py-16 sm:py-24 bg-surface border-b border-hairline">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Section Header -->
+      <div class="flex flex-col md:flex-row md:items-end justify-between pb-8 border-b border-hairline gap-4">
+        <div>
+          <span class="font-mono text-[11px] font-semibold uppercase tracking-eyebrow text-navy-600" data-i18n="soft_eyebrow">
+            01 // CORE SOFTWARE DIVISION
+          </span>
+          <h2 class="text-2xl sm:text-3xl font-semibold text-navy tracking-tight mt-1.5" data-i18n="soft_title">
+            Operational Flight Simulation Systems
+          </h2>
+        </div>
+        <p class="text-sm text-ink-muted max-w-md" data-i18n="soft_intro">
+          Engineered as modular, standalone utilities with shared SimBrief dispatch ingestion and deterministic local execution.
+        </p>
+      </div>
+
+      <!-- Precision 2-Column 1px-Bordered Technical Grid (No Floating Shadows) -->
+      <div class="mt-10 grid grid-cols-1 lg:grid-cols-2 border border-hairline bg-white divide-y lg:divide-y-0 lg:divide-x divide-hairline rounded-[2px]">
+
+        <!-- ===============================================================
+             COLUMN 1: OPTISIM + EMBEDDED CLIMB PROFILE TELEMETRY INSPECTOR
+             =============================================================== -->
+        <div class="flex flex-col justify-between">
+          <div>
+            <!-- Module Metadata Header -->
+            <div class="px-6 py-3.5 border-b border-hairline bg-surface flex items-center justify-between font-mono text-[11px]">
+              <span class="font-semibold text-navy">SYS-01 // PERFORMANCE OPTIMIZATION</span>
+              <span class="px-2 py-0.5 border border-navy text-navy font-semibold text-[10px] tracking-wider">v0.9 R&amp;D</span>
+            </div>
+
+            <!-- Module Description & Specs -->
+            <div class="p-6 sm:p-8">
+              <h3 class="text-2xl font-semibold text-navy tracking-tight">OptiSim</h3>
+              <p class="font-mono text-xs text-navy-600 uppercase tracking-wider mt-1" data-i18n="optisim_sub">
+                Climb &amp; Vertical Profile Optimization Engine
+              </p>
+
+              <p class="text-sm text-ink-body leading-relaxed mt-4" data-i18n="optisim_desc">
+                The flight simulator counterpart to real-world airline climb optimization (OptiClimb). OptiSim ingests SimBrief Operational Flight Plans (OFP), airframe-specific aerodynamic performance tables, and upper-air wind/ISA temperature profiles to compute cost-index-aligned IAS/Mach climb schedules that reduce trip fuel burn.
+              </p>
+
+              <!-- 1px Specification Table -->
+              <div class="mt-6 border border-hairline divide-y divide-hairline text-xs">
+                <div class="px-3.5 py-2.5 bg-surface font-mono text-[10.5px] font-semibold text-navy uppercase tracking-wider" data-i18n="spec_cap_header">
+                  SYSTEM CAPABILITIES
+                </div>
+                <div class="px-3.5 py-2.5 flex items-start gap-3">
+                  <span class="font-mono text-[11px] font-semibold text-navy">01</span>
+                  <span class="text-ink-body" data-i18n="opti_s1">SimBrief OFP XML/JSON flight plan, Cost Index, and payload ingestion</span>
+                </div>
+                <div class="px-3.5 py-2.5 flex items-start gap-3">
+                  <span class="font-mono text-[11px] font-semibold text-navy">02</span>
+                  <span class="text-ink-body" data-i18n="opti_s2">Multi-level winds aloft &amp; ISA temperature deviation modeling</span>
+                </div>
+                <div class="px-3.5 py-2.5 flex items-start gap-3">
+                  <span class="font-mono text-[11px] font-semibold text-navy">03</span>
+                  <span class="text-ink-body" data-i18n="opti_s3">Airframe-calibrated drag polars and fuel-flow climb schedules</span>
+                </div>
+              </div>
+
+              <!-- EMBEDDED CLIMB PROFILE TELEMETRY INSPECTOR -->
+              <div class="mt-7 border border-navy bg-surface p-4 sm:p-5 rounded-[2px]">
+                <div class="flex items-center justify-between pb-3 border-b border-hairline font-mono text-[10.5px]">
+                  <span class="font-semibold text-navy uppercase tracking-wider" data-i18n="insp_opti_title">
+                    CLIMB PROFILE TELEMETRY INSPECTOR
+                  </span>
+                  <span class="text-ink-muted">B738 / A320</span>
+                </div>
+
+                <!-- Interactive Parameters: Gross Weight, Cost Index, Cruise FL -->
+                <div class="mt-4 space-y-4 font-mono">
+                  <!-- Gross Weight -->
+                  <div>
+                    <div class="flex justify-between text-[11px] mb-1.5">
+                      <span class="text-ink-muted uppercase" data-i18n="insp_gw">GROSS WEIGHT (GW)</span>
+                      <span id="opti-gw-val" class="text-navy font-semibold">67.5 T</span>
+                    </div>
+                    <input type="range" id="opti-gw" min="55" max="79" step="0.5" value="67.5" oninput="recomputeOptiSim()" class="aviation-slider" />
+                  </div>
+
+                  <!-- Cost Index & Cruise FL Row -->
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                    <div>
+                      <div class="flex justify-between text-[11px] mb-1.5">
+                        <span class="text-ink-muted uppercase">COST INDEX (CI)</span>
+                        <span id="opti-ci-val" class="text-navy font-semibold">CI 25</span>
+                      </div>
+                      <input type="range" id="opti-ci" min="0" max="100" step="5" value="25" oninput="recomputeOptiSim()" class="aviation-slider" />
+                    </div>
+                    <div>
+                      <div class="flex justify-between text-[11px] mb-1.5">
+                        <span class="text-ink-muted uppercase" data-i18n="insp_fl">CRUISE LEVEL</span>
+                        <span id="opti-fl-val" class="text-navy font-semibold">FL360</span>
+                      </div>
+                      <input type="range" id="opti-fl" min="280" max="410" step="10" value="360" oninput="recomputeOptiSim()" class="aviation-slider" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Telemetry Output Matrix -->
+                <div class="mt-4 pt-4 border-t border-hairline grid grid-cols-3 gap-2 font-mono">
+                  <div class="bg-white border border-hairline p-2.5">
+                    <div class="text-[9.5px] text-ink-muted uppercase" data-i18n="insp_out_spd">REC. CLIMB SPD</div>
+                    <div id="opti-out-spd" class="text-xs sm:text-sm font-semibold text-navy mt-0.5">291 / M.78</div>
+                  </div>
+                  <div class="bg-white border border-hairline p-2.5">
+                    <div class="text-[9.5px] text-ink-muted uppercase" data-i18n="insp_out_toc">TOC DIST / TIME</div>
+                    <div id="opti-out-toc" class="text-xs sm:text-sm font-semibold text-navy mt-0.5">86 NM / 20M</div>
+                  </div>
+                  <div class="bg-white border border-navy p-2.5">
+                    <div class="text-[9.5px] text-navy uppercase font-semibold" data-i18n="insp_out_fuel">EST. FUEL DELTA</div>
+                    <div id="opti-out-fuel" class="text-xs sm:text-sm font-semibold text-navy mt-0.5">-46 KG</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Module Footer Bar -->
+          <div class="px-6 py-3 border-t border-hairline bg-surface flex items-center justify-between font-mono text-[11px] text-ink-muted">
+            <span>TARGET: MSFS / X-PLANE / P3D</span>
+            <span data-i18n="opti_footer_note">DETERMINISTIC SOLVER</span>
+          </div>
+        </div>
+
+        <!-- ===============================================================
+             COLUMN 2: SMARTEFB + EMBEDDED VIEWPORT & SYNC PREVIEW
+             =============================================================== -->
+        <div class="flex flex-col justify-between">
+          <div>
+            <!-- Module Metadata Header -->
+            <div class="px-6 py-3.5 border-b border-hairline bg-surface flex items-center justify-between font-mono text-[11px]">
+              <span class="font-semibold text-navy">SYS-02 // ELECTRONIC FLIGHT BAG</span>
+              <span class="px-2 py-0.5 border border-navy text-navy font-semibold text-[10px] tracking-wider">v0.8 R&amp;D</span>
+            </div>
+
+            <!-- Module Description & Specs -->
+            <div class="p-6 sm:p-8">
+              <h3 class="text-2xl font-semibold text-navy tracking-tight">SmartEFB</h3>
+              <p class="font-mono text-xs text-navy-600 uppercase tracking-wider mt-1" data-i18n="smartefb_sub">
+                Cross-Platform Electronic Flight Bag Suite
+              </p>
+
+              <p class="text-sm text-ink-body leading-relaxed mt-4" data-i18n="smartefb_desc">
+                Designed for simultaneous operation on desktop workstations (secondary monitor or overlay) and external tablet/mobile devices over local network sync (PWA / WebSocket). Integrates SimBrief dispatch briefings, interactive operational checklists, airport briefing workflows, and flight deck utilities.
+              </p>
+
+              <!-- 1px Specification Table -->
+              <div class="mt-6 border border-hairline divide-y divide-hairline text-xs">
+                <div class="px-3.5 py-2.5 bg-surface font-mono text-[10.5px] font-semibold text-navy uppercase tracking-wider" data-i18n="spec_cap_header">
+                  SYSTEM CAPABILITIES
+                </div>
+                <div class="px-3.5 py-2.5 flex items-start gap-3">
+                  <span class="font-mono text-[11px] font-semibold text-navy">01</span>
+                  <span class="text-ink-body" data-i18n="efb_s1">Simultaneous Desktop PC workstation &amp; Tablet/Mobile LAN sync</span>
+                </div>
+                <div class="px-3.5 py-2.5 flex items-start gap-3">
+                  <span class="font-mono text-[11px] font-semibold text-navy">02</span>
+                  <span class="text-ink-body" data-i18n="efb_s2">Interactive Normal &amp; QRH Non-Normal SOP checklist engine</span>
+                </div>
+                <div class="px-3.5 py-2.5 flex items-start gap-3">
+                  <span class="font-mono text-[11px] font-semibold text-navy">03</span>
+                  <span class="text-ink-body" data-i18n="efb_s3">SimBrief dispatch briefing, airport/METAR briefing &amp; utilities</span>
+                </div>
+              </div>
+
+              <!-- EMBEDDED VIEWPORT & SYNC PREVIEW -->
+              <div class="mt-7 border border-navy bg-surface p-4 sm:p-5 rounded-[2px]">
+                <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-hairline font-mono text-[10.5px]">
+                  <span class="font-semibold text-navy uppercase tracking-wider" data-i18n="insp_efb_title">
+                    VIEWPORT &amp; SYNC PREVIEW
+                  </span>
+                  <!-- Segmented Toggle: Desktop vs Tablet -->
+                  <div class="inline-flex border border-hairline bg-white p-0.5 rounded-[2px]">
+                    <button type="button" id="vp-btn-desktop" onclick="switchEfbViewport('desktop')" class="px-2 py-0.5 font-mono text-[10px] font-semibold bg-navy text-white rounded-[1px]">
+                      DESKTOP PC
+                    </button>
+                    <button type="button" id="vp-btn-tablet" onclick="switchEfbViewport('tablet')" class="px-2 py-0.5 font-mono text-[10px] font-medium text-ink-muted hover:text-navy rounded-[1px]">
+                      TABLET EFB
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Live Adaptive Layout Wireframe -->
+                <div class="mt-4">
+                  <div id="efb-preview-shell" class="mx-auto transition-all duration-200 border border-navy bg-white p-3 rounded-[2px] w-full">
+                    <!-- Mini EFB Header -->
+                    <div class="flex items-center justify-between pb-2 border-b border-hairline font-mono text-[10px]">
+                      <span class="font-semibold text-navy">SMARTEFB // EHAM → EGLL</span>
+                      <span id="efb-sync-tag" class="text-navy">HOST: 192.168.1.42:8080</span>
+                    </div>
+
+                    <!-- Mini EFB Adaptive Modules -->
+                    <div id="efb-preview-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-2.5 font-mono text-[10.5px]">
+                      <!-- Briefing / WX Card -->
+                      <div class="border border-hairline bg-surface/60 p-2.5">
+                        <div class="text-[9px] text-ink-muted uppercase mb-1.5">AIRPORT BRIEFING // METAR</div>
+                        <div class="text-navy font-semibold">EHAM 221125Z 25014KT CAVOK</div>
+                        <div class="text-ink-muted mt-1">EGLL 221120Z 26018G28KT 9999</div>
+                      </div>
+
+                      <!-- Interactive Live Checklist Card -->
+                      <div class="border border-hairline bg-surface/60 p-2.5">
+                        <div class="text-[9px] text-ink-muted uppercase mb-1.5">BEFORE TAXI SOP</div>
+                        <div class="space-y-1">
+                          <label class="flex items-center justify-between cursor-pointer">
+                            <span class="text-navy">GENERATORS</span>
+                            <input type="checkbox" checked class="accent-navy" />
+                          </label>
+                          <label class="flex items-center justify-between cursor-pointer">
+                            <span class="text-navy">PROBE HEAT</span>
+                            <input type="checkbox" checked class="accent-navy" />
+                          </label>
+                          <label class="flex items-center justify-between cursor-pointer">
+                            <span class="text-navy">FLIGHT CONTROLS</span>
+                            <input type="checkbox" class="accent-navy" />
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-3 flex items-center justify-between font-mono text-[10px] text-ink-muted">
+                  <span id="efb-mode-caption" data-i18n="efb_cap_desktop">MODE: MULTI-PANEL WORKSTATION VIEW</span>
+                  <span>PWA / LAN READY</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Module Footer Bar -->
+          <div class="px-6 py-3 border-t border-hairline bg-surface flex items-center justify-between font-mono text-[11px] text-ink-muted">
+            <span>CLIENTS: WINDOWS • IPADOS • ANDROID</span>
+            <span data-i18n="efb_footer_note">ZERO-FPS OVERHEAD</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================================
+       3. ENGINEERING PRINCIPLES & SYSTEM ARCHITECTURE (3-COLUMN MATRIX)
+       ===================================================================== -->
+  <section id="architecture" class="py-16 sm:py-24 bg-white border-b border-hairline">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="pb-8 border-b border-hairline">
+        <span class="font-mono text-[11px] font-semibold uppercase tracking-eyebrow text-navy-600" data-i18n="arch_eyebrow">
+          02 // SYSTEM ARCHITECTURE
+        </span>
+        <h2 class="text-2xl sm:text-3xl font-semibold text-navy tracking-tight mt-1.5" data-i18n="arch_title">
+          Engineering Standards &amp; Design Principles
+        </h2>
+      </div>
+
+      <!-- 3-Column 1px-Bordered Specification Matrix -->
+      <div class="mt-10 grid grid-cols-1 md:grid-cols-3 border border-hairline divide-y md:divide-y-0 md:divide-x divide-hairline bg-white rounded-[2px]">
+        
+        <!-- 01: Zero-Bloat Local-First Execution -->
+        <div class="p-6 sm:p-8 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between font-mono text-xs text-navy font-semibold pb-4 border-b border-hairline">
+              <span>01 // RUNTIME</span>
+              <span class="text-ink-muted">LOCAL-FIRST</span>
+            </div>
+            <h3 class="text-lg font-semibold text-navy mt-5" data-i18n="arch_1_title">
+              Zero-Bloat Local-First Execution
+            </h3>
+            <p class="text-sm text-ink-muted leading-relaxed mt-3" data-i18n="arch_1_desc">
+              All performance solvers and EFB services execute natively on local hardware without mandatory cloud subscriptions or heavy background telemetry daemons—preserving CPU and GPU headroom for MSFS 2020/2024, Prepar3D, and X-Plane 12.
+            </p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-hairline font-mono text-[10.5px] text-navy">
+            MEM FOOTPRINT: &lt; 85 MB // NO CLOUD LOCK-IN
+          </div>
+        </div>
+
+        <!-- 02: Real-World Aeronautical Standards -->
+        <div class="p-6 sm:p-8 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between font-mono text-xs text-navy font-semibold pb-4 border-b border-hairline">
+              <span>02 // COMPLIANCE</span>
+              <span class="text-ink-muted">EASA / ICAO</span>
+            </div>
+            <h3 class="text-lg font-semibold text-navy mt-5" data-i18n="arch_2_title">
+              Real-World Aeronautical Standards
+            </h3>
+            <p class="text-sm text-ink-muted leading-relaxed mt-3" data-i18n="arch_2_desc">
+              Data structures, climb speed schedules, and Electronic Flight Bag checklists are architected in strict alignment with EASA/ICAO operational conventions, Flight Crew Operating Manuals (FCOM), and airline dispatch SOPs.
+            </p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-hairline font-mono text-[10.5px] text-navy">
+            STANDARDS: ICAO DOC 8168 • FCOM / QRH LOGIC
+          </div>
+        </div>
+
+        <!-- 03: Cross-Device Synchronization -->
+        <div class="p-6 sm:p-8 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between font-mono text-xs text-navy font-semibold pb-4 border-b border-hairline">
+              <span>03 // TOPOLOGY</span>
+              <span class="text-ink-muted">MULTI-CLIENT</span>
+            </div>
+            <h3 class="text-lg font-semibold text-navy mt-5" data-i18n="arch_3_title">
+              Cross-Device Synchronization
+            </h3>
+            <p class="text-sm text-ink-muted leading-relaxed mt-3" data-i18n="arch_3_desc">
+              A unified local-network host architecture synchronizes active flight plans, checklist states, and performance calculations in real time between your primary simulator PC workstation and external iPad or Android tablets.
+            </p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-hairline font-mono text-[10.5px] text-navy">
+            PROTOCOL: HTTP/WS LOCAL LAN BRIDGE
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================================
+       4. DEVELOPMENT ROADMAP & RELEASE PIPELINE
+       ===================================================================== -->
+  <section id="roadmap" class="py-16 sm:py-24 bg-surface border-b border-hairline">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="flex flex-col md:flex-row md:items-end justify-between pb-8 border-b border-hairline gap-4">
+        <div>
+          <span class="font-mono text-[11px] font-semibold uppercase tracking-eyebrow text-navy-600" data-i18n="road_eyebrow">
+            03 // RELEASE PIPELINE
+          </span>
+          <h2 class="text-2xl sm:text-3xl font-semibold text-navy tracking-tight mt-1.5" data-i18n="road_title">
+            Development Roadmap &amp; Engineering Milestones
+          </h2>
+        </div>
+        <p class="text-sm text-ink-muted max-w-md" data-i18n="road_intro">
+          Current R&amp;D progression for OptiSim and SmartEFB. Builds advance only upon completion of internal flight-test validation.
+        </p>
+      </div>
+
+      <!-- Structured Engineering Milestone Table -->
+      <div class="mt-10 bg-white border border-hairline overflow-x-auto rounded-[2px]">
+        <table class="w-full text-left border-collapse min-w-[700px]">
+          <thead>
+            <tr class="border-b border-hairline bg-surface font-mono text-[10.5px] uppercase tracking-wider text-ink-muted">
+              <th class="py-3.5 px-5 font-semibold" data-i18n="road_h_build">BUILD / STAGE</th>
+              <th class="py-3.5 px-5 font-semibold" data-i18n="road_h_module">MODULE</th>
+              <th class="py-3.5 px-5 font-semibold" data-i18n="road_h_scope">TECHNICAL DELIVERABLE</th>
+              <th class="py-3.5 px-5 font-semibold text-right" data-i18n="road_h_status">STATUS</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-hairline text-sm">
+            <!-- Row 1: OptiSim v0.9 -->
+            <tr>
+              <td class="py-4 px-5 font-mono text-xs font-semibold text-navy">OptiSim v0.9</td>
+              <td class="py-4 px-5 font-mono text-xs text-ink-muted">SYS-01 // CORE</td>
+              <td class="py-4 px-5 text-ink-body" data-i18n="road_1_desc">
+                Aerodynamic Profile Calibration &amp; SimBrief OFP Parser (B738 / A320 drag polars &amp; upper-air wind layers)
+              </td>
+              <td class="py-4 px-5 text-right">
+                <span class="inline-block font-mono text-[10.5px] font-semibold px-2.5 py-0.5 bg-navy text-white uppercase tracking-wider" data-i18n="st_active">
+                  ACTIVE R&amp;D
+                </span>
+              </td>
+            </tr>
+            <!-- Row 2: SmartEFB v0.8 -->
+            <tr>
+              <td class="py-4 px-5 font-mono text-xs font-semibold text-navy">SmartEFB v0.8</td>
+              <td class="py-4 px-5 font-mono text-xs text-ink-muted">SYS-02 // CORE</td>
+              <td class="py-4 px-5 text-ink-body" data-i18n="road_2_desc">
+                Multi-Device Sync Engine &amp; Modular Checklist Core (Desktop host + Tablet PWA real-time state bridge)
+              </td>
+              <td class="py-4 px-5 text-right">
+                <span class="inline-block font-mono text-[10.5px] font-semibold px-2.5 py-0.5 bg-navy text-white uppercase tracking-wider" data-i18n="st_active">
+                  ACTIVE R&amp;D
+                </span>
+              </td>
+            </tr>
+            <!-- Row 3: Unified Integration v0.95 -->
+            <tr>
+              <td class="py-4 px-5 font-mono text-xs font-semibold text-ink-muted">Suite v0.95</td>
+              <td class="py-4 px-5 font-mono text-xs text-ink-muted">SYS-01 + SYS-02</td>
+              <td class="py-4 px-5 text-ink-muted" data-i18n="road_3_desc">
+                Direct OptiSim climb schedule injection into SmartEFB dispatch &amp; performance tabs; closed pilot validation
+              </td>
+              <td class="py-4 px-5 text-right">
+                <span class="inline-block font-mono text-[10.5px] font-medium px-2.5 py-0.5 border border-hairline bg-surface text-ink-muted uppercase tracking-wider" data-i18n="st_next">
+                  NEXT MILESTONE
+                </span>
+              </td>
+            </tr>
+            <!-- Row 4: Public Release v1.0 -->
+            <tr>
+              <td class="py-4 px-5 font-mono text-xs font-semibold text-ink-muted">Release v1.0</td>
+              <td class="py-4 px-5 font-mono text-xs text-ink-muted">PUBLIC BUILD</td>
+              <td class="py-4 px-5 text-ink-muted" data-i18n="road_4_desc">
+                Initial public release for MSFS 2020/2024, Prepar3D, and X-Plane 12 with expanded narrowbody/widebody profiles
+              </td>
+              <td class="py-4 px-5 text-right">
+                <span class="inline-block font-mono text-[10.5px] font-medium px-2.5 py-0.5 border border-hairline bg-surface text-ink-muted uppercase tracking-wider" data-i18n="st_scheduled">
+                  SCHEDULED
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================================
+       5. CORPORATE & LEGAL NOTICE + CONTACT
+       ===================================================================== -->
+  <section id="legal" class="py-16 sm:py-24 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12">
+        
+        <!-- Left Column: Formal Corporate & Legal Notice -->
+        <div class="lg:col-span-7 space-y-5">
+          <span class="font-mono text-[11px] font-semibold uppercase tracking-eyebrow text-navy-600" data-i18n="legal_eyebrow">
+            04 // GOVERNANCE &amp; LEGAL STATUS
+          </span>
+          <h2 class="text-2xl sm:text-3xl font-semibold text-navy tracking-tight" data-i18n="legal_title">
+            Corporate &amp; Legal Notice
+          </h2>
+
+          <div class="border border-hairline bg-surface p-5 sm:p-6 space-y-4 text-sm text-ink-body leading-relaxed rounded-[2px]">
+            <p data-i18n="legal_p1">
+              JR Sim Solutions operates strictly as an independent, non-commercial software development initiative based in the Netherlands. JR Sim Solutions is not officially registered as a commercial legal entity (geen KvK-inschrijving / Chamber of Commerce registration) and does not conduct commercial trade activities.
+            </p>
+            <p data-i18n="legal_p2">
+              All software applications, aerodynamic models, and Electronic Flight Bag tools—including OptiSim and SmartEFB—are developed solely for home flight simulation entertainment, personal cockpit workflows, and educational purposes. They must not be used for real-world flight planning, navigation, or aircraft operations.
+            </p>
+            <div class="pt-3 border-t border-hairline grid grid-cols-1 sm:grid-cols-2 gap-4 font-mono text-xs">
+              <div>
+                <span class="text-[10px] text-ink-muted uppercase block" data-i18n="legal_k1">ENTITY CLASSIFICATION</span>
+                <span class="text-navy font-semibold mt-0.5 block" data-i18n="legal_v1">Independent Initiative (Unregistered / Geen KvK)</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-ink-muted uppercase block" data-i18n="legal_k2">CORRESPONDENCE CHANNEL</span>
+                <a href="mailto:jrsimsolutions@gmail.com" class="text-navy font-semibold underline underline-offset-4 mt-0.5 block hover:text-navy-700">
+                  jrsimsolutions@gmail.com
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Technical Correspondence / Alpha Validation Channel -->
+        <div class="lg:col-span-5">
+          <div class="border border-hairline bg-surface p-5 sm:p-6 rounded-[2px]">
+            <div class="pb-3.5 border-b border-hairline flex items-center justify-between font-mono text-xs">
+              <span class="font-semibold text-navy uppercase" data-i18n="form_title">TECHNICAL INQUIRY CHANNEL</span>
+              <span class="text-[10px] text-ink-muted">DIRECT DISPATCH</span>
+            </div>
+
+            <form id="contact-form" onsubmit="handleContactSubmit(event)" class="mt-4 space-y-3.5">
+              <div>
+                <label for="sender-name" class="block font-mono text-[10.5px] uppercase text-ink-muted mb-1" data-i18n="form_name">Identifier / Name</label>
+                <input type="text" id="sender-name" required class="w-full px-3 py-2 bg-white border border-hairline text-sm text-navy focus:outline-none focus:border-navy rounded-[2px]" />
+              </div>
+
+              <div>
+                <label for="sender-email" class="block font-mono text-[10.5px] uppercase text-ink-muted mb-1" data-i18n="form_email">Return Email</label>
+                <input type="email" id="sender-email" required class="w-full px-3 py-2 bg-white border border-hairline text-sm text-navy focus:outline-none focus:border-navy rounded-[2px]" />
+              </div>
+
+              <div>
+                <label for="topic-select" class="block font-mono text-[10.5px] uppercase text-ink-muted mb-1" data-i18n="form_topic">Module / Subject</label>
+                <select id="topic-select" class="w-full px-3 py-2 bg-white border border-hairline text-sm text-navy focus:outline-none focus:border-navy rounded-[2px]">
+                  <option value="optisim" data-i18n="form_opt_1">OptiSim v0.9 — Climb Optimization</option>
+                  <option value="smartefb" data-i18n="form_opt_2">SmartEFB v0.8 — Cross-Platform EFB</option>
+                  <option value="validation" data-i18n="form_opt_3">Closed Pilot Validation Program</option>
+                  <option value="general" data-i18n="form_opt_4">General Engineering Inquiry</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="sender-message" class="block font-mono text-[10.5px] uppercase text-ink-muted mb-1" data-i18n="form_msg">Technical Notes</label>
+                <textarea id="sender-message" rows="3" required class="w-full px-3 py-2 bg-white border border-hairline text-sm text-navy focus:outline-none focus:border-navy rounded-[2px]"></textarea>
+              </div>
+
+              <div class="pt-1 flex flex-col gap-2">
+                <button type="submit" class="w-full py-2.5 bg-navy text-white font-mono text-xs font-medium uppercase tracking-wider hover:bg-navy-800 transition-colors rounded-[2px]" data-i18n="form_submit">
+                  TRANSMIT INQUIRY
+                </button>
+                <span id="form-feedback" class="font-mono text-[11px] text-navy hidden"></span>
+              </div>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================================
+       ARCHITECTURAL FOOTER
+       ===================================================================== -->
+  <footer class="bg-surface border-t border-hairline">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        
+        <!-- Monogram + Wordmark -->
+        <div class="flex items-center gap-3.5">
+          <div class="w-8 h-8 flex items-center justify-center shrink-0">
+            <svg viewBox="0 0 120 110" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+              <path d="M22 14 H42 V72 C42 86 32 95 19 95 C10 95 4 90 1 83" stroke="#0A1D37" stroke-width="2.6"/>
+              <path d="M35 14 V71 C35 81 28 88 19 88 C13 88 9 84 7 79" stroke="#0A1D37" stroke-width="2.6"/>
+              <path d="M56 93 V14 H82 C99 14 110 24 110 40 C110 53 101 62 88 65 L112 93" stroke="#0A1D37" stroke-width="2.6"/>
+              <path d="M63 93 V21 H81 C93 21 102 28 102 40 C102 51 94 58 81 58 H63" stroke="#0A1D37" stroke-width="2.6"/>
+              <path d="M79 58 L103 93" stroke="#0A1D37" stroke-width="2.6"/>
+              <path d="M44 85 C48 92 56 95 66 95 C79 95 88 87 88 76 C88 65 79 60 65 56 C52 52 44 47 44 37 C44 27 52 20 63 20 C72 20 79 25 83 33 L95 58" stroke="#0A1D37" stroke-width="2.6"/>
+            </svg>
+          </div>
+          <div>
+            <div class="text-navy font-medium text-xs tracking-brand uppercase">JR SIM SOLUTIONS</div>
+            <div class="font-mono text-[10px] text-ink-muted mt-0.5">© 2026 JR Sim Solutions — Independent Flight Simulation Initiative</div>
+          </div>
+        </div>
+
+        <!-- Trademarks & Aviation Disclaimer -->
+        <p class="font-mono text-[10.5px] text-ink-muted max-w-xl leading-relaxed" data-i18n="footer_disclaimer">
+          NOT FOR REAL-WORLD AVIATION USE. Independent unregistered software project (geen KvK-inschrijving). Not affiliated with SITA, Airbus, Boeing, or Navigraph.
+        </p>
+
+        <!-- Language Switch Links -->
+        <div class="flex items-center gap-2 font-mono text-[11px]">
+          <button type="button" onclick="setLanguage('en')" class="text-ink-muted hover:text-navy underline-offset-4 hover:underline">EN</button>
+          <span class="text-hairline">/</span>
+          <button type="button" onclick="setLanguage('nl')" class="text-ink-muted hover:text-navy underline-offset-4 hover:underline">NL</button>
+        </div>
+
+      </div>
+    </div>
+  </footer>
+
+  <!-- =====================================================================
+       STATE-DRIVEN BILINGUAL ENGINE & TELEMETRY SIMULATORS
+       ===================================================================== -->
+  <script>
+    const translations = {
+      en: {
+        nav_sub: "AEROSPACE SIMULATION ENGINEERING",
+        nav_software: "Software",
+        nav_architecture: "Architecture",
+        nav_roadmap: "Roadmap",
+        nav_legal: "Legal & Status",
+
+        hero_eyebrow: "FLIGHT OPERATIONS SOFTWARE ARCHITECTURE",
+        hero_title: "Deterministic flight performance and Electronic Flight Bag systems.",
+        hero_subtitle: "JR Sim Solutions engineers specialized operational software for flight simulation environments—translating airline dispatch methodology, vertical profile optimization, and cross-device EFB synchronization into lightweight desktop and tablet applications.",
+        hero_cta_primary: "INSPECT SOFTWARE MODULES",
+        hero_cta_secondary: "R&D RELEASE PIPELINE",
+        meta_1_k: "VERTICAL ENGINE",
+        meta_2_k: "FLIGHT DECK EFB",
+        meta_3_k: "DISPATCH LINK",
+
+        soft_eyebrow: "01 // CORE SOFTWARE DIVISION",
+        soft_title: "Operational Flight Simulation Systems",
+        soft_intro: "Engineered as modular, standalone utilities with shared SimBrief dispatch ingestion and deterministic local execution.",
+        spec_cap_header: "SYSTEM CAPABILITIES",
+
+        optisim_sub: "Climb & Vertical Profile Optimization Engine",
+        optisim_desc: "The flight simulator counterpart to real-world airline climb optimization (OptiClimb). OptiSim ingests SimBrief Operational Flight Plans (OFP), airframe-specific aerodynamic performance tables, and upper-air wind/ISA temperature profiles to compute cost-index-aligned IAS/Mach climb schedules that reduce trip fuel burn.",
+        opti_s1: "SimBrief OFP XML/JSON flight plan, Cost Index, and payload ingestion",
+        opti_s2: "Multi-level winds aloft & ISA temperature deviation modeling",
+        opti_s3: "Airframe-calibrated drag polars and fuel-flow climb schedules",
+        insp_opti_title: "CLIMB PROFILE TELEMETRY INSPECTOR",
+        insp_gw: "GROSS WEIGHT (GW)",
+        insp_fl: "CRUISE LEVEL",
+        insp_out_spd: "REC. CLIMB SPD",
+        insp_out_toc: "TOC DIST / TIME",
+        insp_out_fuel: "EST. FUEL DELTA",
+        opti_footer_note: "DETERMINISTIC SOLVER",
+
+        smartefb_sub: "Cross-Platform Electronic Flight Bag Suite",
+        smartefb_desc: "Designed for simultaneous operation on desktop workstations (secondary monitor or overlay) and external tablet/mobile devices over local network sync (PWA / WebSocket). Integrates SimBrief dispatch briefings, interactive operational checklists, airport briefing workflows, and flight deck utilities.",
+        efb_s1: "Simultaneous Desktop PC workstation & Tablet/Mobile LAN sync",
+        efb_s2: "Interactive Normal & QRH Non-Normal SOP checklist engine",
+        efb_s3: "SimBrief dispatch briefing, airport/METAR briefing & utilities",
+        insp_efb_title: "VIEWPORT & SYNC PREVIEW",
+        efb_cap_desktop: "MODE: MULTI-PANEL WORKSTATION VIEW",
+        efb_cap_tablet: "MODE: TOUCH-OPTIMIZED TABLET EFB VIEW",
+        efb_footer_note: "ZERO-FPS OVERHEAD",
+
+        arch_eyebrow: "02 // SYSTEM ARCHITECTURE",
+        arch_title: "Engineering Standards & Design Principles",
+        arch_1_title: "Zero-Bloat Local-First Execution",
+        arch_1_desc: "All performance solvers and EFB services execute natively on local hardware without mandatory cloud subscriptions or heavy background telemetry daemons—preserving CPU and GPU headroom for MSFS 2020/2024, Prepar3D, and X-Plane 12.",
+        arch_2_title: "Real-World Aeronautical Standards",
+        arch_2_desc: "Data structures, climb speed schedules, and Electronic Flight Bag checklists are architected in strict alignment with EASA/ICAO operational conventions, Flight Crew Operating Manuals (FCOM), and airline dispatch SOPs.",
+        arch_3_title: "Cross-Device Synchronization",
+        arch_3_desc: "A unified local-network host architecture synchronizes active flight plans, checklist states, and performance calculations in real time between your primary simulator PC workstation and external iPad or Android tablets.",
+
+        road_eyebrow: "03 // RELEASE PIPELINE",
+        road_title: "Development Roadmap & Engineering Milestones",
+        road_intro: "Current R&D progression for OptiSim and SmartEFB. Builds advance only upon completion of internal flight-test validation.",
+        road_h_build: "BUILD / STAGE",
+        road_h_module: "MODULE",
+        road_h_scope: "TECHNICAL DELIVERABLE",
+        road_h_status: "STATUS",
+        road_1_desc: "Aerodynamic Profile Calibration & SimBrief OFP Parser (B738 / A320 drag polars & upper-air wind layers)",
+        road_2_desc: "Multi-Device Sync Engine & Modular Checklist Core (Desktop host + Tablet PWA real-time state bridge)",
+        road_3_desc: "Direct OptiSim climb schedule injection into SmartEFB dispatch & performance tabs; closed pilot validation",
+        road_4_desc: "Initial public release for MSFS 2020/2024, Prepar3D, and X-Plane 12 with expanded narrowbody/widebody profiles",
+        st_active: "ACTIVE R&D",
+        st_next: "NEXT MILESTONE",
+        st_scheduled: "SCHEDULED",
+
+        legal_eyebrow: "04 // GOVERNANCE & LEGAL STATUS",
+        legal_title: "Corporate & Legal Notice",
+        legal_p1: "JR Sim Solutions operates strictly as an independent, non-commercial software development initiative based in the Netherlands. JR Sim Solutions is not officially registered as a commercial legal entity (geen KvK-inschrijving / Chamber of Commerce registration) and does not conduct commercial trade activities.",
+        legal_p2: "All software applications, aerodynamic models, and Electronic Flight Bag tools—including OptiSim and SmartEFB—are developed solely for home flight simulation entertainment, personal cockpit workflows, and educational purposes. They must not be used for real-world flight planning, navigation, or aircraft operations.",
+        legal_k1: "ENTITY CLASSIFICATION",
+        legal_v1: "Independent Initiative (Unregistered / Geen KvK)",
+        legal_k2: "CORRESPONDENCE CHANNEL",
+
+        form_title: "TECHNICAL INQUIRY CHANNEL",
+        form_name: "Identifier / Name",
+        form_email: "Return Email",
+        form_topic: "Module / Subject",
+        form_opt_1: "OptiSim v0.9 — Climb Optimization",
+        form_opt_2: "SmartEFB v0.8 — Cross-Platform EFB",
+        form_opt_3: "Closed Pilot Validation Program",
+        form_opt_4: "General Engineering Inquiry",
+        form_msg: "Technical Notes",
+        form_submit: "TRANSMIT INQUIRY",
+        form_success: "TRANSMISSION LOGGED. JR Sim Solutions will respond via email.",
+
+        footer_disclaimer: "NOT FOR REAL-WORLD AVIATION USE. Independent unregistered software project (geen KvK-inschrijving). Not affiliated with SITA, Airbus, Boeing, or Navigraph."
+      },
+      nl: {
+        nav_sub: "AEROSPACE SIMULATION ENGINEERING",
+        nav_software: "Software",
+        nav_architecture: "Architectuur",
+        nav_roadmap: "Roadmap",
+        nav_legal: "Juridisch & Status",
+
+        hero_eyebrow: "FLIGHT OPERATIONS SOFTWARE-ARCHITECTUUR",
+        hero_title: "Deterministische vluchtprestatie- en Electronic Flight Bag-systemen.",
+        hero_subtitle: "JR Sim Solutions ontwikkelt gespecialiseerde operationele software voor vluchtsimulatie—waarbij airline dispatch-methodologie, verticale profieloptimalisatie en cross-device EFB-synchronisatie worden vertaald naar efficiënte desktop- en tabletapplicaties.",
+        hero_cta_primary: "BEKIJK SOFTWAREMODULES",
+        hero_cta_secondary: "R&D RELEASE PIPELINE",
+        meta_1_k: "VERTICALE ENGINE",
+        meta_2_k: "COCKPIT EFB",
+        meta_3_k: "DISPATCH KOPPELING",
+
+        soft_eyebrow: "01 // CORE SOFTWARE DIVISIE",
+        soft_title: "Operationele Flight Simulation Systemen",
+        soft_intro: "Ontwikkeld als modulaire, zelfstandige applicaties met gedeelde SimBrief dispatch-verwerking en deterministische lokale uitvoering.",
+        spec_cap_header: "SYSTEEMCAPACITEITEN",
+
+        optisim_sub: "Klim- & Verticaal Profiel Optimalisatie-engine",
+        optisim_desc: "De simulator-tegenhanger van commerciële klimoptimalisatie (OptiClimb). OptiSim verwerkt SimBrief Operational Flight Plans (OFP), vliegtuigspecifieke aerodynamische prestatietabellen en hoogtewind-/ISA-temperatuurprofielen om Cost Index-afgestemde IAS/Mach-klimschema's te berekenen die het brandstofverbruik verlagen.",
+        opti_s1: "SimBrief OFP XML/JSON vluchtplan-, Cost Index- en beladingsverwerking",
+        opti_s2: "Modellering van bovenwinden (winds aloft) & ISA-temperatuurafwijkingen",
+        opti_s3: "Vliegtuiggekalibreerde weerstandspolairen en brandstofverbruikstabellen",
+        insp_opti_title: "CLIMB PROFILE TELEMETRY INSPECTOR",
+        insp_gw: "BRUTOGEWICHT (GW)",
+        insp_fl: "KRUISHOOGTE",
+        insp_out_spd: "AANBEV. KLIMSNELH.",
+        insp_out_toc: "TOC AFST. / TIJD",
+        insp_out_fuel: "BRANDSTOFVERSCHIL",
+        opti_footer_note: "DETERMINISTISCHE SOLVER",
+
+        smartefb_sub: "Platformonafhankelijke Electronic Flight Bag Suite",
+        smartefb_desc: "Ontworpen voor gelijktijdig gebruik op desktop-werkstations (tweede monitor of overlay) en externe tablet-/mobiele apparaten via lokale netwerksynchronisatie (PWA / WebSocket). Integreert SimBrief dispatch briefings, interactieve operationele checklists, luchthavenbriefings en cockpit-utilities.",
+        efb_s1: "Gelijktijdige Desktop PC-werkstation & Tablet/Mobiel LAN-synchronisatie",
+        efb_s2: "Interactieve Normal & QRH Non-Normal SOP checklist-engine",
+        efb_s3: "SimBrief dispatch briefing, luchthaven-/METAR-briefing & utilities",
+        insp_efb_title: "VIEWPORT & SYNC PREVIEW",
+        efb_cap_desktop: "MODUS: MULTI-PANEL WERKSTATIONWEERGAVE",
+        efb_cap_tablet: "MODUS: TOUCH-GEOPTIMALISEERDE TABLET EFB-WEERGAVE",
+        efb_footer_note: "GEEN FPS-BELASTING",
+
+        arch_eyebrow: "02 // SYSTEEMARCHITECTUUR",
+        arch_title: "Technische Standaarden & Ontwerpprincipes",
+        arch_1_title: "Zero-Bloat Local-First Uitvoering",
+        arch_1_desc: "Alle prestatie-solvers en EFB-services draaien lokaal op uw eigen hardware zonder verplichte cloudabonnementen of zware achtergrondprocessen—zodat CPU- en GPU-capaciteit behouden blijft voor MSFS 2020/2024, Prepar3D en X-Plane 12.",
+        arch_2_title: "Luchtvaartkundige Standaarden",
+        arch_2_desc: "Datastructuren, klimsnelheidsschema's en Electronic Flight Bag-checklists zijn strikt gemodelleerd naar EASA/ICAO-conventies, Flight Crew Operating Manuals (FCOM) en airline dispatch-procedures.",
+        arch_3_title: "Cross-Device Synchronisatie",
+        arch_3_desc: "Een uniforme lokale netwerkarchitectuur synchroniseert actieve vluchtplannen, checkliststatussen en prestatieberekeningen in real-time tussen uw primaire simulator-pc en externe iPad- of Android-tablets.",
+
+        road_eyebrow: "03 // RELEASE PIPELINE",
+        road_title: "Ontwikkelingsroadmap & Technische Mijlpalen",
+        road_intro: "Actuele R&D-voortgang voor OptiSim en SmartEFB. Builds gaan pas door naar de volgende fase na interne vluchttestvalidatie.",
+        road_h_build: "BUILD / FASE",
+        road_h_module: "MODULE",
+        road_h_scope: "TECHNISCHE OPLEVERING",
+        road_h_status: "STATUS",
+        road_1_desc: "Aerodynamische profielkalibratie & SimBrief OFP-parser (B738 / A320 weerstandspolairen & bovenwindlagen)",
+        road_2_desc: "Multi-Device Sync Engine & Modulaire Checklist Core (Desktop host + Tablet PWA real-time statusbrug)",
+        road_3_desc: "Directe injectie van OptiSim-klimschema's in SmartEFB dispatch- & prestatietabbladen; gesloten pilotvalidatie",
+        road_4_desc: "Eerste publieke release voor MSFS 2020/2024, Prepar3D en X-Plane 12 met uitgebreide vliegtuigprofielen",
+        st_active: "ACTIEVE R&D",
+        st_next: "VOLGENDE MIJLPAAL",
+        st_scheduled: "GEPLAND",
+
+        legal_eyebrow: "04 // GOVERNANCE & JURIDISCHE STATUS",
+        legal_title: "Juridische Kennisgeving & Status",
+        legal_p1: "JR Sim Solutions opereert uitsluitend als een onafhankelijk, niet-commercieel softwareontwikkelingsinitiatief in Nederland. JR Sim Solutions is niet officieel ingeschreven als commerciële rechtspersoon (geen KvK-inschrijving) en verricht geen commerciële handelsactiviteiten.",
+        legal_p2: "Alle softwareapplicaties, aerodynamische modellen en Electronic Flight Bag-tools—waaronder OptiSim en SmartEFB—zijn uitsluitend ontwikkeld voor thuis-vluchtsimulatie, persoonlijke cockpit-workflows en educatieve doeleinden. Gebruik voor echte vluchtplanning, navigatie of luchtvaartoperaties is strikt uitgesloten.",
+        legal_k1: "ENTITEITSCLASSIFICATIE",
+        legal_v1: "Onafhankelijk Initiatief (Niet ingeschreven / Geen KvK)",
+        legal_k2: "CORRESPONDENTIEKANAAL",
+
+        form_title: "TECHNISCH CONTACTKANAAL",
+        form_name: "Identificatie / Naam",
+        form_email: "Retour E-mailadres",
+        form_topic: "Module / Onderwerp",
+        form_opt_1: "OptiSim v0.9 — Klimoptimalisatie",
+        form_opt_2: "SmartEFB v0.8 — Cross-Platform EFB",
+        form_opt_3: "Gesloten Pilot Validatieprogramma",
+        form_opt_4: "Algemene Technische Vraag",
+        form_msg: "Technische Toelichting",
+        form_submit: "VERSTUUR BERICHT",
+        form_success: "BERICHT GEREGISTREERD. JR Sim Solutions neemt per e-mail contact op.",
+
+        footer_disclaimer: "NIET VOOR ECHT LUCHTVAARTGEBRUIK. Onafhankelijk niet-ingeschreven softwareproject (geen KvK-inschrijving). Niet gelieerd aan SITA, Airbus, Boeing of Navigraph."
+      }
+    };
+
+    let currentLang = 'en';
+    let currentEfbMode = 'desktop';
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      document.documentElement.lang = lang;
+
+      const btnEn = document.getElementById('btn-lang-en');
+      const btnNl = document.getElementById('btn-lang-nl');
+
+      if (lang === 'en') {
+        btnEn.className = 'px-2.5 py-1 font-mono text-[11px] font-semibold tracking-wider bg-navy text-white rounded-[1px]';
+        btnNl.className = 'px-2.5 py-1 font-mono text-[11px] font-medium tracking-wider text-ink-muted hover:text-navy rounded-[1px]';
+      } else {
+        btnNl.className = 'px-2.5 py-1 font-mono text-[11px] font-semibold tracking-wider bg-navy text-white rounded-[1px]';
+        btnEn.className = 'px-2.5 py-1 font-mono text-[11px] font-medium tracking-wider text-ink-muted hover:text-navy rounded-[1px]';
+      }
+
+      const dict = translations[lang];
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key]) {
+          el.textContent = dict[key];
+        }
+      });
+
+      // Keep dynamic EFB caption synced with language
+      switchEfbViewport(currentEfbMode);
+    }
+
+    function toggleMobileMenu() {
+      document.getElementById('mobile-menu').classList.toggle('hidden');
+    }
+
+    // Embedded OptiSim Climb Profile Telemetry Inspector
+    function recomputeOptiSim() {
+      const gw = parseFloat(document.getElementById('opti-gw').value);
+      const ci = parseInt(document.getElementById('opti-ci').value, 10);
+      const fl = parseInt(document.getElementById('opti-fl').value, 10);
+
+      document.getElementById('opti-gw-val').textContent = `${gw.toFixed(1)} T`;
+      document.getElementById('opti-ci-val').textContent = `CI ${ci}`;
+      document.getElementById('opti-fl-val').textContent = `FL${fl}`;
+
+      // Deterministic climb schedule approximation
+      const ias = Math.round(274 + (ci * 0.28) + ((gw - 60) * 0.42));
+      const clampedIas = Math.min(315, Math.max(268, ias));
+      const mach = ci >= 65 ? 'M.79' : (ci >= 20 ? 'M.78' : 'M.76');
+
+      const tocDist = Math.round(52 + ((fl - 280) * 0.34) + ((gw - 55) * 0.85));
+      const tocTime = Math.round(tocDist / 4.25);
+      const fuelDelta = Math.round(22 + ((fl - 280) * 0.24) + (Math.abs(ci - 35) * 0.28));
+
+      document.getElementById('opti-out-spd').textContent = `${clampedIas} / ${mach}`;
+      document.getElementById('opti-out-toc').textContent = `${tocDist} NM / ${tocTime}M`;
+      document.getElementById('opti-out-fuel').textContent = `-${fuelDelta} KG`;
+    }
+
+    // Embedded SmartEFB Viewport & Sync Preview Switcher
+    function switchEfbViewport(mode) {
+      currentEfbMode = mode;
+      const shell = document.getElementById('efb-preview-shell');
+      const grid = document.getElementById('efb-preview-grid');
+      const btnDesk = document.getElementById('vp-btn-desktop');
+      const btnTab = document.getElementById('vp-btn-tablet');
+      const caption = document.getElementById('efb-mode-caption');
+      const syncTag = document.getElementById('efb-sync-tag');
+
+      if (mode === 'desktop') {
+        shell.classList.remove('max-w-[310px]');
+        shell.classList.add('w-full');
+        grid.classList.remove('grid-cols-1');
+        grid.classList.add('grid-cols-1', 'sm:grid-cols-2');
+
+        btnDesk.className = 'px-2 py-0.5 font-mono text-[10px] font-semibold bg-navy text-white rounded-[1px]';
+        btnTab.className = 'px-2 py-0.5 font-mono text-[10px] font-medium text-ink-muted hover:text-navy rounded-[1px]';
+        syncTag.textContent = 'HOST: 192.168.1.42:8080';
+        caption.textContent = translations[currentLang].efb_cap_desktop;
+      } else {
+        shell.classList.add('max-w-[310px]');
+        grid.classList.remove('sm:grid-cols-2');
+        grid.classList.add('grid-cols-1');
+
+        btnTab.className = 'px-2 py-0.5 font-mono text-[10px] font-semibold bg-navy text-white rounded-[1px]';
+        btnDesk.className = 'px-2 py-0.5 font-mono text-[10px] font-medium text-ink-muted hover:text-navy rounded-[1px]';
+        syncTag.textContent = 'CLIENT: IPAD-OS // SYNCED';
+        caption.textContent = translations[currentLang].efb_cap_tablet;
+      }
+    }
+
+    function handleContactSubmit(e) {
+      e.preventDefault();
+      const feedback = document.getElementById('form-feedback');
+      feedback.textContent = translations[currentLang].form_success;
+      feedback.classList.remove('hidden');
+      e.target.reset();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      setLanguage('en');
+      recomputeOptiSim();
+    });
+  </script>
+</body>
+</html>
